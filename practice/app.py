@@ -1,6 +1,52 @@
-from flask import Flask, render_template
+import os
+from flask import Flask, render_template, request, redirect
+from flask_sqlalchemy import SQLAlchemy
+from dotenv import load_dotenv
 
-app = Flask(__name__)
+load_dotenv()
+
+app = Flask('_name_')
+
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
+
+db = SQLAlchemy(app)
+
+class Todo(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    content = db.Column(
+        db.String(200),
+        nullable=False
+    )
+
+with app.app_context():
+    db.create_all()
+
+@app.route("/todo")
+def todo():
+
+    todos = Todo.query.all()
+
+    return render_template(
+        "todo.html",
+        todos=todos
+    )
+
+@app.route("/add", methods=["POST"])
+def add_todo():
+
+    content = request.form.get("content")
+
+    if content:
+
+        new_todo = Todo(content=content)
+
+        db.session.add(new_todo)
+
+        db.session.commit()
+
+    return redirect("/todo")
 
 @app.route("/")
 def home():
@@ -8,7 +54,7 @@ def home():
    
 @app.route("/math")
 def math():
-    return "Hello, World!"
+    return "我數導考0分，程設8分，謝謝大家"
 
 @app.route("/html_tags")
 def html_tags():
